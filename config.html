@@ -1,0 +1,490 @@
+<html>
+<head>
+<meta charset="UTF-8">
+<script src="script/jquery.min.js"></script>
+<script src="script/parse.js"></script>
+<script type="text/javascript">
+  var cwidth,cheight,cy,cx;
+  var ctx;
+  var gameScore;
+  var gridlocation;
+  var gridChess;
+  var dieLocations;
+  var DieStr="";
+  var token;
+
+  function drawShape(){
+    var canvas = document.getElementById('board');
+   	cwidth = canvas.width/8;
+   	cheight = canvas.height/8;
+   	cx = canvas.offsetLeft + 20;
+    cy = canvas.offsetTop + 20;
+ 
+    if (canvas.getContext){
+      ctx = canvas.getContext('2d');
+  	  for(var i = 0; i < 8; i++){
+  	  	drawLineGrid(i);
+  	  }
+      initParse();
+      setText();
+    } else {
+      alert('You need Safari or Firefox 1.5+ to see this game.');
+    }
+  }
+  
+  function getY(y){
+  	return cy + (y * cheight);
+  }
+  
+  function getX(x){
+  	return cx + (x * cwidth);
+  }
+  
+  function drawLineGrid(lineNum){
+  	if(lineNum%2 == 0){
+  		drawBlackGrid(lineNum,0);
+  		drawWidthGrid(lineNum,1);
+  		drawBlackGrid(lineNum,2);
+  		drawWidthGrid(lineNum,3);
+  		drawBlackGrid(lineNum,4);
+  		drawWidthGrid(lineNum,5);
+  		drawBlackGrid(lineNum,6);
+  		drawWidthGrid(lineNum,7);
+  	}else{
+  		drawWidthGrid(lineNum,0);
+  		drawBlackGrid(lineNum,1);
+  		drawWidthGrid(lineNum,2);
+  		drawBlackGrid(lineNum,3);
+  		drawWidthGrid(lineNum,4);
+  		drawBlackGrid(lineNum,5);
+  		drawWidthGrid(lineNum,6);
+  		drawBlackGrid(lineNum,7);
+  	}
+  }
+  
+  function drawWidthGrid(lineNum, where){
+      ctx.fillStyle="#D2C2B9";
+      ctx.fillRect(cheight*lineNum, cwidth*where, cwidth, cheight);
+  }
+  
+  function drawBlackGrid(lineNum, where){
+      ctx.fillStyle="#6D4B41";
+      ctx.fillRect(cheight*lineNum, cwidth*where, cwidth, cheight);
+  }
+
+  function initGridLocation(){
+  	  var str=
+  	  '{"H1":"'+document.getElementById("H1").value+'",'+
+  	  '"H2":"'+document.getElementById("H2").value+'",'+
+  	  '"H3":"'+document.getElementById("H3").value+'",'+
+  	  '"H4":"'+document.getElementById("H4").value+'",'+
+  	  '"H5":"'+document.getElementById("H5").value+'",'+
+  	  '"H6":"'+document.getElementById("H6").value+'",'+
+  	  '"H7":"'+document.getElementById("H7").value+'",'+
+  	  '"H8":"'+document.getElementById("H8").value+'",'+
+  	  '"G1":"'+document.getElementById("G1").value+'",'+
+  	  '"G2":"'+document.getElementById("G2").value+'",'+
+  	  '"G3":"'+document.getElementById("G3").value+'",'+
+  	  '"G4":"'+document.getElementById("G4").value+'",'+
+  	  '"G5":"'+document.getElementById("G5").value+'",'+
+  	  '"G6":"'+document.getElementById("G6").value+'",'+
+  	  '"G7":"'+document.getElementById("G7").value+'",'+
+  	  '"G8":"'+document.getElementById("G8").value+'",'+
+  	  '"F1":"'+document.getElementById("F1").value+'",'+
+  	  '"F2":"'+document.getElementById("F2").value+'",'+
+  	  '"F3":"'+document.getElementById("F3").value+'",'+
+  	  '"F4":"'+document.getElementById("F4").value+'",'+
+  	  '"F5":"'+document.getElementById("F5").value+'",'+
+  	  '"F6":"'+document.getElementById("F6").value+'",'+
+  	  '"F7":"'+document.getElementById("F7").value+'",'+
+  	  '"F8":"'+document.getElementById("F8").value+'",'+
+  	  '"E1":"'+document.getElementById("E1").value+'",'+
+  	  '"E2":"'+document.getElementById("E2").value+'",'+
+  	  '"E3":"'+document.getElementById("E3").value+'",'+
+  	  '"E4":"'+document.getElementById("E4").value+'",'+
+  	  '"E5":"'+document.getElementById("E5").value+'",'+
+  	  '"E6":"'+document.getElementById("E6").value+'",'+
+  	  '"E7":"'+document.getElementById("E7").value+'",'+
+  	  '"E8":"'+document.getElementById("E8").value+'",'+
+  	  '"D1":"'+document.getElementById("D1").value+'",'+
+  	  '"D2":"'+document.getElementById("D2").value+'",'+
+  	  '"D3":"'+document.getElementById("D3").value+'",'+
+  	  '"D4":"'+document.getElementById("D4").value+'",'+
+  	  '"D5":"'+document.getElementById("D5").value+'",'+
+  	  '"D6":"'+document.getElementById("D6").value+'",'+
+  	  '"D7":"'+document.getElementById("D7").value+'",'+
+  	  '"D8":"'+document.getElementById("D8").value+'",'+
+  	  '"C1":"'+document.getElementById("C1").value+'",'+
+  	  '"C2":"'+document.getElementById("C2").value+'",'+
+  	  '"C3":"'+document.getElementById("C3").value+'",'+
+  	  '"C4":"'+document.getElementById("C4").value+'",'+
+  	  '"C5":"'+document.getElementById("C5").value+'",'+
+  	  '"C6":"'+document.getElementById("C6").value+'",'+
+  	  '"C7":"'+document.getElementById("C7").value+'",'+
+  	  '"C8":"'+document.getElementById("C8").value+'",'+
+  	  '"B1":"'+document.getElementById("B1").value+'",'+
+  	  '"B2":"'+document.getElementById("B2").value+'",'+
+  	  '"B3":"'+document.getElementById("B3").value+'",'+
+  	  '"B4":"'+document.getElementById("B4").value+'",'+
+  	  '"B5":"'+document.getElementById("B5").value+'",'+
+  	  '"B6":"'+document.getElementById("B6").value+'",'+
+  	  '"B7":"'+document.getElementById("B7").value+'",'+
+  	  '"B8":"'+document.getElementById("B8").value+'",'+
+  	  '"A1":"'+document.getElementById("A1").value+'",'+
+  	  '"A2":"'+document.getElementById("A2").value+'",'+
+  	  '"A3":"'+document.getElementById("A3").value+'",'+
+  	  '"A4":"'+document.getElementById("A4").value+'",'+
+  	  '"A5":"'+document.getElementById("A5").value+'",'+
+  	  '"A6":"'+document.getElementById("A6").value+'",'+
+  	  '"A7":"'+document.getElementById("A7").value+'",'+
+  	  '"A8":"'+document.getElementById("A8").value+'"}';
+  	  gridlocation = eval('(' + str + ')');
+  }
+  function initGridChess(){
+    var str=
+    '{"'+document.getElementById("BC1ID").value+'":"blacktower1",'+
+    '"'+document.getElementById("BC2ID").value+'":"blacktower2",'+
+    '"'+document.getElementById("BH1ID").value+'":"blackhorse1",'+
+    '"'+document.getElementById("BH2ID").value+'":"blackhorse2",'+
+    '"'+document.getElementById("BP1ID").value+'":"blackphase1",'+
+    '"'+document.getElementById("BP2ID").value+'":"blackphase2",'+
+    '"'+document.getElementById("BKID").value+'":"blackking",'+
+    '"'+document.getElementById("BQID").value+'":"blackqueen",'+
+    '"'+document.getElementById("BS1ID").value+'":"blacksoldiers1",'+
+    '"'+document.getElementById("BS2ID").value+'":"blacksoldiers2",'+
+    '"'+document.getElementById("BS3ID").value+'":"blacksoldiers3",'+
+    '"'+document.getElementById("BS4ID").value+'":"blacksoldiers4",'+
+    '"'+document.getElementById("BS5ID").value+'":"blacksoldiers5",'+
+    '"'+document.getElementById("BS6ID").value+'":"blacksoldiers6",'+
+    '"'+document.getElementById("BS7ID").value+'":"blacksoldiers7",'+
+    '"'+document.getElementById("BS8ID").value+'":"blacksoldiers8",'+
+    '"'+document.getElementById("WC1ID").value+'":"whitetower1",'+
+    '"'+document.getElementById("WC2ID").value+'":"whitetower2",'+
+    '"'+document.getElementById("WH1ID").value+'":"whitehorse1",'+
+    '"'+document.getElementById("WH2ID").value+'":"whitehorse2",'+
+    '"'+document.getElementById("WP1ID").value+'":"whitephase1",'+
+    '"'+document.getElementById("WP2ID").value+'":"whitephase2",'+
+    '"'+document.getElementById("WKID").value+'":"whiteking",'+
+    '"'+document.getElementById("WQID").value+'":"whitequeen",'+
+    '"'+document.getElementById("WS1ID").value+'":"whitesoldiers1",'+
+    '"'+document.getElementById("WS2ID").value+'":"whitesoldiers2",'+
+    '"'+document.getElementById("WS3ID").value+'":"whitesoldiers3",'+
+    '"'+document.getElementById("WS4ID").value+'":"whitesoldiers4",'+
+    '"'+document.getElementById("WS5ID").value+'":"whitesoldiers5",'+
+    '"'+document.getElementById("WS6ID").value+'":"whitesoldiers6",'+
+    '"'+document.getElementById("WS7ID").value+'":"whitesoldiers7",'+
+    '"'+document.getElementById("WS8ID").value+'":"whitesoldiers8"}';
+    gridChess = eval('(' + str + ')');
+  }
+
+  function initDieLocation(){
+      for(var i = 1; i <= 35 ; i++){
+          DieStr += " | " + document.getElementById("DCARD"+i).value + " | ";
+      }
+  }
+  function initParse(){
+      Parse.initialize("L1WvlJSMGsN2CSgtQaSlvQvILlTKW5Q6CQQPMpDv", "096OedpLjURU5eNphdymRKytfpuTLD1Q5TCJzkU0");
+      var GameScore = Parse.Object.extend("GameChess");
+      gameScore = new GameScore();
+  }
+  function setText(){
+      var board = document.getElementById("boardDiv");
+      
+      for(var i = 1; i <= 8 ; i++){
+          for(var j = 1; j <= 8 ; j++){
+              var doc = document.createElement("font");
+              doc.style.position = "absolute";
+              doc.style.fontSize = '16pt';
+              if(i == 1){
+                  doc.innerHTML = "H"+j;
+              }else if(i == 2){
+                  doc.innerHTML = "G"+j;
+              }else if(i == 3){
+                  doc.innerHTML = "F"+j;
+              }else if(i == 4){
+                  doc.innerHTML = "E"+j;
+              }else if(i == 5){
+                  doc.innerHTML = "D"+j;
+              }else if(i == 6){
+                  doc.innerHTML = "C"+j;
+              }else if(i == 7){
+                  doc.innerHTML = "B"+j;
+              }else if(i == 8){
+                  doc.innerHTML = "A"+j;
+              }
+              doc.style.left = getX(j-1);
+              doc.style.top = getY(i-1);
+              board.appendChild(doc);
+          }
+      }
+  }
+  function saveParse(){
+      initGridLocation();
+      initGridChess();
+      initDieLocation();
+      gameScore.set("chessLocations", gridlocation);
+      gameScore.set("chesses", gridChess);
+      gameScore.set("dieLocations", DieStr);
+      gameScore.set("account", document.getElementById("username").value);
+      gameScore.set("pass", document.getElementById("password").value);
+      gameScore.set("appid", document.getElementById("appid").value);
+
+      gameScore.save(null, {
+                     success: function(gameScore) {
+                        // Execute any logic that should take place after the object is saved.
+                        alert('创建成功');
+                        document.getElementById("link").innerHTML = 'http://stephencho.github.io/GizwitsChessT/?queryId='+gameScore.id;
+                     },
+                        error: function(gameScore, error) {
+                        // Execute any logic that should take place if the save fails.
+                        //error is a Parse.Error with an error code and message.
+                        alert('创建失败');
+                     }
+                    });
+  }
+
+    function setlen(doc){
+        var v=doc.value;
+        while(v.length<8){v=v+'0';};
+        doc.value=v;
+    }
+
+    function login(){
+        $.ajax({
+           url:'http://api.gizwits.com/app/login',
+           data:"{\"username\":\"" + document.getElementById("username").value + "\",\"password\":\"" + document.getElementById("password").value + "\"}",
+           type:'post',
+           headers: {"Content-Type":"application/json",
+               "X-Gizwits-Application-Id":document.getElementById("appid").value},
+           success:function(data) {
+               var res = JSON.parse(data);
+               token = res.token;
+               document.getElementById("login_success").innerHTML = "登陆成功";
+           },
+           error : function(data) {
+               alert("登陆失败"+JSON.stringify(data));
+               document.getElementById("login_success").innerHTML = "";
+           }
+        });
+    }
+
+    function getDid(doc,mac){
+        //   doc.value = "success";
+        //   doc.style.width = "58px";
+        $.ajax({
+            url:'http://api.gizwits.com/app/devices?product_key='+document.getElementById("pk").value+'&mac='+document.getElementById(mac+"MAC").value,
+            data:{},
+            type:'get',
+            headers: {"Content-Type":"application/json",
+               "X-Gizwits-Application-Id":document.getElementById("appid").value},
+            success:function(data) {
+               var res = JSON.parse(data);
+               bind(doc, mac, res.did);
+            },
+            error : function(data) {
+               alert("绑定失败"+JSON.stringify(data));
+            }
+        });
+    }
+
+    function bind(doc,mac,did){
+        var str = "{\"did\":\"" + did + "\",\"passcode\":\"" + document.getElementById(mac+"PS").value + "\",\"remark\":\"\"}";
+        var strs = "{\"devices\":[{\"did\": \""+did+"\",\"passcode\": \""+document.getElementById(mac+"PS").value+"\",\"remark\": \"\"}]}";
+        $.ajax({
+            url:'http://api.gizwits.com/app/bindings',
+            data:strs,
+            type:'post',
+            headers: {"Content-Type":"application/json",
+               "X-Gizwits-Application-Id":document.getElementById("appid").value,
+               "X-Gizwits-User-token":token},
+            success:function(data) {
+               doc.value = "success";
+               doc.style.width = "58px";
+               doc.disabled = "disabled";
+               doc.style.color = "#ffffff";
+            },
+            error : function(data) {
+               alert("绑定失败"+JSON.stringify(data));
+            }
+        });
+    }
+</script>
+<style>
+    #board{
+        border: 8px solid #9A7662;
+    }
+    body{
+        background-color: #000000;
+        padding:30px 60px 0px 60px;
+    }
+    #boardDiv div input{
+        margin-top: 7px;
+        width: 100px;
+    }
+    #dieDiv input{
+        margin-right:20px;
+        margin-left:10px;
+    }
+    .BID{
+        margin-right:10px;
+    }
+</style>
+</head>
+ 
+<body onload="drawShape();">
+  <div id="boardDiv">
+    <img src="image/logo2.png" style="margin-left:40px;width:223px;height:96px;"/><br />
+    <div style="margin-top:40px; margin-bottom:25px; color:#E4E230;">
+        <canvas id="board" width="400px" height="400px" style="margin-right:8px;float:left;"></canvas>
+        A1 <input id="A1" onblur="setlen(this);"></input>
+        A2 <input id="A2" onblur="setlen(this);"></input>
+        A3 <input id="A3" onblur="setlen(this);"></input>
+        A4 <input id="A4" onblur="setlen(this);"></input><br/>
+        A5 <input id="A5" onblur="setlen(this);"></input>
+        A6 <input id="A6" onblur="setlen(this);"></input>
+        A7 <input id="A7" onblur="setlen(this);"></input>
+        A8 <input id="A8" onblur="setlen(this);"></input><br/>
+        B1 <input id="B1" onblur="setlen(this);" style="margin-left:1px;"></input>
+        B2 <input id="B2" onblur="setlen(this);" style="margin-left:1px;"></input>
+        B3 <input id="B3" onblur="setlen(this);" style="margin-left:1px;"></input>
+        B4 <input id="B4" onblur="setlen(this);"></input><br/>
+        B5 <input id="B5" onblur="setlen(this);" style="margin-left:1px;"></input>
+        B6 <input id="B6" onblur="setlen(this);" style="margin-left:1px;"></input>
+        B7 <input id="B7" onblur="setlen(this);" style="margin-left:1px;"></input>
+        B8 <input id="B8" onblur="setlen(this);"></input><br/>
+        C1 <input id="C1" onblur="setlen(this);" style="margin-left:1px;"></input>
+        C2 <input id="C2" onblur="setlen(this);" style="margin-left:1px;"></input>
+        C3 <input id="C3" onblur="setlen(this);" style="margin-left:1px;"></input>
+        C4 <input id="C4" onblur="setlen(this);"></input><br/>
+        C5 <input id="C5" onblur="setlen(this);" style="margin-left:1px;"></input>
+        C6 <input id="C6" onblur="setlen(this);" style="margin-left:1px;"></input>
+        C7 <input id="C7" onblur="setlen(this);" style="margin-left:1px;"></input>
+        C8 <input id="C8" onblur="setlen(this);"></input><br/>
+        D1 <input id="D1" onblur="setlen(this);"></input>
+        D2 <input id="D2" onblur="setlen(this);"></input>
+        D3 <input id="D3" onblur="setlen(this);"></input>
+        D4 <input id="D4" onblur="setlen(this);"></input><br/>
+        D5 <input id="D5" onblur="setlen(this);"></input>
+        D6 <input id="D6" onblur="setlen(this);"></input>
+        D7 <input id="D7" onblur="setlen(this);"></input>
+        D8 <input id="D8" onblur="setlen(this);"></input><br/>
+        E1 <input id="E1" onblur="setlen(this);" style="margin-left:2px;"></input>
+        E2 <input id="E2" onblur="setlen(this);" style="margin-left:2px;"></input>
+        E3 <input id="E3" onblur="setlen(this);" style="margin-left:2px;"></input>
+        E4 <input id="E4" onblur="setlen(this);" style="margin-left:1px;"></input><br/>
+        E5 <input id="E5" onblur="setlen(this);" style="margin-left:2px;"></input>
+        E6 <input id="E6" onblur="setlen(this);" style="margin-left:2px;"></input>
+        E7 <input id="E7" onblur="setlen(this);" style="margin-left:2px;"></input>
+        E8 <input id="E8" onblur="setlen(this);" style="margin-left:1px;"></input><br/>
+        F1 <input id="F1" onblur="setlen(this);" style="margin-left:3px;"></input>
+        F2 <input id="F2" onblur="setlen(this);" style="margin-left:3px;"></input>
+        F3 <input id="F3" onblur="setlen(this);" style="margin-left:2px;"></input>
+        F4 <input id="F4" onblur="setlen(this);" style="margin-left:2px;"></input><br/>
+        F5 <input id="F5" onblur="setlen(this);" style="margin-left:3px;"></input>
+        F6 <input id="F6" onblur="setlen(this);" style="margin-left:3px;"></input>
+        F7 <input id="F7" onblur="setlen(this);" style="margin-left:2px;"></input>
+        F8 <input id="F8" onblur="setlen(this);" style="margin-left:2px;"></input><br/>
+        G1 <input id="G1" onblur="setlen(this);"></input>
+        G2 <input id="G2" onblur="setlen(this);"></input>
+        G3 <input id="G3" onblur="setlen(this);"></input>
+        G4 <input id="G4" onblur="setlen(this);"></input><br/>
+        G5 <input id="G5" onblur="setlen(this);"></input>
+        G6 <input id="G6" onblur="setlen(this);"></input>
+        G7 <input id="G7" onblur="setlen(this);"></input>
+        G8 <input id="G8" onblur="setlen(this);"></input><br/>
+        H1 <input id="H1" onblur="setlen(this);"></input>
+        H2 <input id="H2" onblur="setlen(this);"></input>
+        H3 <input id="H3" onblur="setlen(this);"></input>
+        H4 <input id="H4" onblur="setlen(this);"></input><br/>
+        H5 <input id="H5" onblur="setlen(this);"></input>
+        H6 <input id="H6" onblur="setlen(this);"></input>
+        H7 <input id="H7" onblur="setlen(this);"></input>
+        H8 <input id="H8" onblur="setlen(this);"></input><br/>
+    </div>
+    <span style="color:#E4E230;">产品识别码(Product key) </span><input id="pk"/>
+    <span style="color:#E4E230;">APPID  </span><input id="appid"/>
+    <span style="color:#E4E230; margin-left:25px;">用户名 </span><input id="username"/><span style="color:#E4E230; margin-left:5px;">密码 </span><input id="password"/><input type="button" value="登陆" style="width:40px;margin-left:5px;" onclick="login()"/><span id="login_success" style="color:#5DC930;margin-left:10px;"></span><br/>
+    <div style="margin-top:20px; color:#E4E230;">
+        白方车1&nbsp;&nbsp;&nbsp;&nbsp; 初始位置A1&nbsp;&nbsp;&nbsp; 编号<input id="WC1ID" class="BID"></input>MAC地址<input id="A1MAC" class="BID"></input>Passcode<input id="A1PS" class="BID"></input><input type="button" value="绑定" style="width:40px;margin-right:15px;" onclick="getDid(this,'A1');"/><br/>
+        白方马1&nbsp;&nbsp;&nbsp;&nbsp; 初始位置A2&nbsp;&nbsp;&nbsp; 编号<input id="WH1ID" class="BID"></input>MAC地址<input id="A2MAC" class="BID"></input>Passcode<input id="A2PS" class="BID"><input type="button" value="绑定" style="width:40px;margin-right:15px;" onclick="getDid(this,'A2');"/><br/>
+        白方象1&nbsp;&nbsp;&nbsp;&nbsp; 初始位置A3&nbsp;&nbsp;&nbsp; 编号<input id="WP1ID" class="BID"></input>MAC地址<input id="A3MAC" class="BID"></input>Passcode<input id="A3PS" class="BID"><input type="button" value="绑定" style="width:40px;margin-right:15px;" onclick="getDid(this,'A3');"/><br/>
+        白方皇后&nbsp;&nbsp; 初始位置A4&nbsp;&nbsp;&nbsp; 编号<input id="WQID" class="BID"></input>MAC地址<input id="A4MAC" class="BID"></input>Passcode<input id="A4PS" class="BID"><input type="button" value="绑定" style="width:40px;margin-right:15px;" onclick="getDid(this,'A4');"/><br/>
+        白方国王&nbsp;&nbsp; 初始位置A5&nbsp;&nbsp;&nbsp; 编号<input id="WKID" class="BID"></input>MAC地址<input id="A5MAC" class="BID"></input>Passcode<input id="A5PS" class="BID"><input type="button" value="绑定" style="width:40px;margin-right:15px;" onclick="getDid(this,'A5');"/><br/>
+        白方象2&nbsp;&nbsp;&nbsp;&nbsp; 初始位置A6&nbsp;&nbsp;&nbsp; 编号<input id="WP2ID" class="BID"></input>MAC地址<input id="A6MAC" class="BID"></input>Passcode<input id="A6PS" class="BID"><input type="button" value="绑定" style="width:40px;margin-right:15px;" onclick="getDid(this,'A6');"/><br/>
+        白方马1&nbsp;&nbsp;&nbsp;&nbsp; 初始位置A7&nbsp;&nbsp;&nbsp; 编号<input id="WH2ID" class="BID"></input>MAC地址<input id="A7MAC" class="BID"></input>Passcode<input id="A7PS" class="BID"><input type="button" value="绑定" style="width:40px;margin-right:15px;" onclick="getDid(this,'A7');"/><br/>
+        白方车1&nbsp;&nbsp;&nbsp;&nbsp; 初始位置A8&nbsp;&nbsp;&nbsp; 编号<input id="WC2ID" class="BID"></input>MAC地址<input id="A8MAC" class="BID"></input>Passcode<input id="A8PS" class="BID"><input type="button" value="绑定" style="width:40px;margin-right:15px;" onclick="getDid(this,'A8');"/><br/>
+        白方兵1&nbsp;&nbsp;&nbsp;&nbsp; 初始位置B1&nbsp;&nbsp;&nbsp; 编号<input id="WS1ID" class="BID"></input>MAC地址<input id="A9MAC" class="BID"></input>Passcode<input id="A9PS" class="BID"><input type="button" value="绑定" style="width:40px;margin-right:15px;" onclick="getDid(this,'A9');"/><br/>
+        白方兵2&nbsp;&nbsp;&nbsp;&nbsp; 初始位置B2&nbsp;&nbsp;&nbsp; 编号<input id="WS2ID" class="BID"></input>MAC地址<input id="A10MAC" class="BID"></input>Passcode<input id="A10PS" class="BID"><input type="button" value="绑定" style="width:40px;margin-right:15px;" onclick="getDid(this,'A10');"/><br/>
+        白方兵3&nbsp;&nbsp;&nbsp;&nbsp; 初始位置B3&nbsp;&nbsp;&nbsp; 编号<input id="WS3ID" class="BID"></input>MAC地址<input id="A11MAC" class="BID"></input>Passcode<input id="A11PS" class="BID"><input type="button" value="绑定" style="width:40px;margin-right:15px;" onclick="getDid(this,'A11');"/><br/>
+        白方兵4&nbsp;&nbsp;&nbsp;&nbsp; 初始位置B4&nbsp;&nbsp;&nbsp; 编号<input id="WS4ID" class="BID"></input>MAC地址<input id="A12MAC" class="BID"></input>Passcode<input id="A12PS" class="BID"><input type="button" value="绑定" style="width:40px;margin-right:15px;" onclick="getDid(this,'A12');"/><br/>
+        白方兵5&nbsp;&nbsp;&nbsp;&nbsp; 初始位置B5&nbsp;&nbsp;&nbsp; 编号<input id="WS5ID" class="BID"></input>MAC地址<input id="A13MAC" class="BID"></input>Passcode<input id="A13PS" class="BID"><input type="button" value="绑定" style="width:40px;margin-right:15px;" onclick="getDid(this,'A13');"/><br/>
+        白方兵6&nbsp;&nbsp;&nbsp;&nbsp; 初始位置B6&nbsp;&nbsp;&nbsp; 编号<input id="WS6ID" class="BID"></input>MAC地址<input id="A14MAC" class="BID"></input>Passcode<input id="A14PS" class="BID"><input type="button" value="绑定" style="width:40px;margin-right:15px;" onclick="getDid(this,'A14');"/><br/>
+        白方兵7&nbsp;&nbsp;&nbsp;&nbsp; 初始位置B7&nbsp;&nbsp;&nbsp; 编号<input id="WS7ID" class="BID"></input>MAC地址<input id="A15MAC" class="BID"></input>Passcode<input id="A15PS" class="BID"><input type="button" value="绑定" style="width:40px;margin-right:15px;" onclick="getDid(this,'A15');"/><br/>
+        白方兵8&nbsp;&nbsp;&nbsp;&nbsp; 初始位置B8&nbsp;&nbsp;&nbsp; 编号<input id="WS8ID" class="BID"></input>MAC地址<input id="A16MAC" class="BID"></input>Passcode<input id="A16PS" class="BID"><input type="button" value="绑定" style="width:40px;margin-right:15px;" onclick="getDid(this,'A16');"/><br/>
+    </div>
+    
+    <div style="margin-top:20px; color:red;">
+        黑方车1&nbsp;&nbsp;&nbsp;&nbsp; 初始位置H1&nbsp;&nbsp;&nbsp; 编号<input id="BC1ID" class="BID"></input>MAC地址<input id="A17MAC" class="BID"></input>Passcode<input id="A17PS" class="BID"><input type="button" value="绑定" style="width:40px;" onclick="getDid(this,'A17');"/><br/>
+        黑方马1&nbsp;&nbsp;&nbsp;&nbsp; 初始位置H2&nbsp;&nbsp;&nbsp; 编号<input id="BH1ID" class="BID"></input>MAC地址<input id="A18MAC" class="BID"></input>Passcode<input id="A18PS" class="BID"><input type="button" value="绑定" style="width:40px;" onclick="getDid(this,'A18');"/><br/>
+        黑方象1&nbsp;&nbsp;&nbsp;&nbsp; 初始位置H3&nbsp;&nbsp;&nbsp; 编号<input id="BP1ID" class="BID"></input>MAC地址<input id="A19MAC" class="BID"></input>Passcode<input id="A19PS" class="BID"><input type="button" value="绑定" style="width:40px;" onclick="getDid(this,'A19');"/><br/>
+        黑方皇后&nbsp;&nbsp; 初始位置H4&nbsp;&nbsp;&nbsp; 编号<input id="BQID" class="BID"></input>MAC地址<input id="A20MAC" class="BID"></input>Passcode<input id="A20PS" class="BID"><input type="button" value="绑定" style="width:40px;" onclick="getDid(this,'A20');"/><br/>
+        黑方国王&nbsp;&nbsp; 初始位置H5&nbsp;&nbsp;&nbsp; 编号<input id="BKID" class="BID"></input>MAC地址<input id="A21MAC" class="BID"></input>Passcode<input id="A21PS" class="BID"><input type="button" value="绑定" style="width:40px;" onclick="getDid(this,'A21');"/><br/>
+        黑方象2&nbsp;&nbsp;&nbsp;&nbsp; 初始位置H6&nbsp;&nbsp;&nbsp; 编号<input id="BP2ID" class="BID"></input>MAC地址<input id="A22MAC" class="BID"></input>Passcode<input id="A22PS" class="BID"><input type="button" value="绑定" style="width:40px;" onclick="getDid(this,'A22');"/><br/>
+        黑方马2&nbsp;&nbsp;&nbsp;&nbsp; 初始位置H7&nbsp;&nbsp;&nbsp; 编号<input id="BH2ID" class="BID"></input>MAC地址<input id="A23MAC" class="BID"></input>Passcode<input id="A23PS" class="BID"><input type="button" value="绑定" style="width:40px;" onclick="getDid(this,'A23');"/><br/>
+        黑方车2&nbsp;&nbsp;&nbsp;&nbsp; 初始位置H8&nbsp;&nbsp;&nbsp; 编号<input id="BC2ID" class="BID"></input>MAC地址<input id="A24MAC" class="BID"></input>Passcode<input id="A24PS" class="BID"><input type="button" value="绑定" style="width:40px;" onclick="getDid(this,'A24');"/><br/>
+        黑方兵1&nbsp;&nbsp;&nbsp;&nbsp; 初始位置G1&nbsp;&nbsp;&nbsp; 编号<input id="BS1ID" class="BID"></input>MAC地址<input id="A25MAC" class="BID"></input>Passcode<input id="A25PS" class="BID"><input type="button" value="绑定" style="width:40px;" onclick="getDid(this,'A25');"/><br/>
+        黑方兵2&nbsp;&nbsp;&nbsp;&nbsp; 初始位置G2&nbsp;&nbsp;&nbsp; 编号<input id="BS2ID" class="BID"></input>MAC地址<input id="A26MAC" class="BID"></input>Passcode<input id="A26PS" class="BID"><input type="button" value="绑定" style="width:40px;" onclick="getDid(this,'A26');"/><br/>
+        黑方兵3&nbsp;&nbsp;&nbsp;&nbsp; 初始位置G3&nbsp;&nbsp;&nbsp; 编号<input id="BS3ID" class="BID"></input>MAC地址<input id="A27MAC" class="BID"></input>Passcode<input id="A27PS" class="BID"><input type="button" value="绑定" style="width:40px;" onclick="getDid(this,'A27');"/><br/>
+        黑方兵4&nbsp;&nbsp;&nbsp;&nbsp; 初始位置G4&nbsp;&nbsp;&nbsp; 编号<input id="BS4ID" class="BID"></input>MAC地址<input id="A28MAC" class="BID"></input>Passcode<input id="A28PS" class="BID"><input type="button" value="绑定" style="width:40px;" onclick="getDid(this,'A28');"/><br/>
+        黑方兵5&nbsp;&nbsp;&nbsp;&nbsp; 初始位置G5&nbsp;&nbsp;&nbsp; 编号<input id="BS5ID" class="BID"></input>MAC地址<input id="A29MAC" class="BID"></input>Passcode<input id="A29PS" class="BID"><input type="button" value="绑定" style="width:40px;" onclick="getDid(this,'A29');"/><br/>
+        黑方兵6&nbsp;&nbsp;&nbsp;&nbsp; 初始位置G6&nbsp;&nbsp;&nbsp; 编号<input id="BS6ID" class="BID"></input>MAC地址<input id="A30MAC" class="BID"></input>Passcode<input id="A30PS" class="BID"><input type="button" value="绑定" style="width:40px;" onclick="getDid(this,'A30');"/><br/>
+        黑方兵7&nbsp;&nbsp;&nbsp;&nbsp; 初始位置G7&nbsp;&nbsp;&nbsp; 编号<input id="BS7ID" class="BID"></input>MAC地址<input id="A31MAC" class="BID"></input>Passcode<input id="A31PS" class="BID"><input type="button" value="绑定" style="width:40px;" onclick="getDid(this,'A31');"/><br/>
+        黑方兵8&nbsp;&nbsp;&nbsp;&nbsp; 初始位置G8&nbsp;&nbsp;&nbsp; 编号<input id="BS8ID" class="BID"></input>MAC地址<input id="A32MAC" class="BID"></input>Passcode<input id="A32PS" class="BID"><input type="button" value="绑定" style="width:40px;" onclick="getDid(this,'A32');"/><br/>
+    </div>
+    
+    <div id="dieDiv" style="padding-top:20px; color:#E4E230; clear:left;">
+        死亡卡号<input id="DCARD1" onblur="setlen(this);" style="margin-right:20px;">
+        死亡卡号<input id="DCARD2" onblur="setlen(this);" style="margin-right:20px;">
+        死亡卡号<input id="DCARD3" onblur="setlen(this);" style="margin-right:20px;">
+        死亡卡号<input id="DCARD4" onblur="setlen(this);" style="margin-right:20px;">
+        死亡卡号<input id="DCARD5" onblur="setlen(this);" style="margin-right:20px;"><br/>
+        死亡卡号<input id="DCARD6" onblur="setlen(this);" style="margin-right:20px;">
+        死亡卡号<input id="DCARD7" onblur="setlen(this);" style="margin-right:20px;">
+        死亡卡号<input id="DCARD8" onblur="setlen(this);" style="margin-right:20px;">
+        死亡卡号<input id="DCARD9" onblur="setlen(this);" style="margin-right:20px;">
+        死亡卡号<input id="DCARD10" onblur="setlen(this);" style="margin-right:20px;"><br/>
+        死亡卡号<input id="DCARD11" onblur="setlen(this);" style="margin-right:20px;">
+        死亡卡号<input id="DCARD12" onblur="setlen(this);" style="margin-right:20px;">
+        死亡卡号<input id="DCARD13" onblur="setlen(this);" style="margin-right:20px;">
+        死亡卡号<input id="DCARD14" onblur="setlen(this);" style="margin-right:20px;">
+        死亡卡号<input id="DCARD15" onblur="setlen(this);" style="margin-right:20px;"><br/>
+        死亡卡号<input id="DCARD16" onblur="setlen(this);" style="margin-right:20px;">
+        死亡卡号<input id="DCARD17" onblur="setlen(this);" style="margin-right:20px;">
+        死亡卡号<input id="DCARD18" onblur="setlen(this);" style="margin-right:20px;">
+        死亡卡号<input id="DCARD19" onblur="setlen(this);" style="margin-right:20px;">
+        死亡卡号<input id="DCARD20" onblur="setlen(this);" style="margin-right:20px;"><br/>
+        死亡卡号<input id="DCARD21" onblur="setlen(this);" style="margin-right:20px;">
+        死亡卡号<input id="DCARD22" onblur="setlen(this);" style="margin-right:20px;">
+        死亡卡号<input id="DCARD23" onblur="setlen(this);" style="margin-right:20px;">
+        死亡卡号<input id="DCARD24" onblur="setlen(this);" style="margin-right:20px;">
+        死亡卡号<input id="DCARD25" onblur="setlen(this);" style="margin-right:20px;"><br/>
+        死亡卡号<input id="DCARD26" onblur="setlen(this);" style="margin-right:20px;">
+        死亡卡号<input id="DCARD27" onblur="setlen(this);" style="margin-right:20px;">
+        死亡卡号<input id="DCARD28" onblur="setlen(this);" style="margin-right:20px;">
+        死亡卡号<input id="DCARD29" onblur="setlen(this);" style="margin-right:20px;">
+        死亡卡号<input id="DCARD30" onblur="setlen(this);" style="margin-right:20px;"><br/>
+        死亡卡号<input id="DCARD31" onblur="setlen(this);" style="margin-right:20px;">
+        死亡卡号<input id="DCARD32" onblur="setlen(this);" style="margin-right:20px;">
+        死亡卡号<input id="DCARD33" onblur="setlen(this);" style="margin-right:20px;">
+        死亡卡号<input id="DCARD34" onblur="setlen(this);" style="margin-right:20px;">
+        死亡卡号<input id="DCARD35" onblur="setlen(this);" style="margin-right:20px;"><br/>
+    </div>
+    
+    <div style="margin-top:20px; margin-bottom:50px;">
+        <input type="image" src="image/wifibtn2.png" id="sendBtn" onclick="saveParse();"/>
+        <H3 id="link" style="color:#E4E230;"></H3>
+    </div>
+  </div>
+</body>
+</html>
+</html>
